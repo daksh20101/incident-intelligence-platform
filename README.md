@@ -2,7 +2,7 @@
 
 **An AI copilot for IT operations.** It ingests incidents, user tickets, application logs and metrics, then triages them, predicts SLA breaches, detects anomalies, retrieves the right runbooks and proposes **evidence-linked root-cause hypotheses** — with a human approving every remediation.
 
-> Status: **Step 1 of 15 complete** (foundations). Built step by step in public; see the [roadmap](docs/ROADMAP.md) and the [learning journal](docs/learning/).
+> Status: **Step 2 of 15 complete** (foundations, domain model & synthetic data). Built step by step in public; see the [roadmap](docs/ROADMAP.md) and the [learning journal](docs/learning/).
 
 ---
 
@@ -23,6 +23,7 @@ On-call engineers lose the first 30+ minutes of an outage to the same chores: fi
 | Remediation that requires human approval | Approval workflow + audit log | Planned (Step 11) |
 | Incident timelines and postmortems | Grounded LLM generation with citations | Planned (Step 12) |
 | Incident, SLA and service-health dashboards | Streamlit | Planned (Step 13) |
+| Realistic test data with known answers | Synthetic company, seeded incidents, decoys, false alarms | ✅ Done (Step 2) |
 | Measured quality | Evaluation harness on seeded incidents | Planned (Step 14) |
 
 ## Architecture
@@ -70,22 +71,31 @@ cp .env.example .env
 uv sync
 uv run pytest
 uv run python scripts/check_llm.py
+uv run python scripts/generate_data.py
 uv run uvicorn incident_intel.api.main:app --reload
 ```
 
-In order: create your local settings file (never committed), install Python 3.12 and the dependencies, run the tests, confirm the LLM answers, then start the API and open <http://127.0.0.1:8000/docs>.
+In order: create your local settings file (never committed), install Python 3.12 and the dependencies, run the tests, confirm the LLM answers, generate the synthetic dataset into `data/synthetic/`, then start the API and open <http://127.0.0.1:8000/docs>.
 
 ## Project structure
 
 ```
 ├── src/incident_intel/      # the application package
 │   ├── api/main.py          # FastAPI app and endpoints
-│   └── config.py            # typed settings from env vars / .env
-├── scripts/check_llm.py     # smoke test for the LLM connection
+│   ├── config.py            # typed settings from env vars / .env
+│   ├── domain/models.py     # shared data types: Incident, Ticket, LogEvent, ...
+│   └── synthetic/           # ShopFast generator: topology, signals, seeded scenarios
+├── scripts/
+│   ├── check_llm.py         # smoke test for the LLM connection
+│   └── generate_data.py     # build the synthetic dataset
 ├── tests/                   # pytest test suite
 ├── docs/                    # roadmap, setup guides, learning journal
 └── .github/workflows/ci.yml # CI: lint + tests on every push
 ```
+
+## Data
+
+The platform is developed against **ShopFast**, a fictional e-commerce company with 15 services, two weeks of metrics, logs, alerts, tickets and deployments, and 12 planted incidents whose true root causes are recorded for evaluation. Details: [docs/DATA.md](docs/DATA.md).
 
 ## Roadmap
 

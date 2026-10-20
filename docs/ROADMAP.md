@@ -7,7 +7,7 @@ Each step is roughly one working session. Every step ends with: working code, pa
 | # | Step | What gets built | You write | Interview angle |
 |---|---|---|---|---|
 | 1 | **Foundations** ✅ | Repo, uv, FastAPI skeleton, typed config, free local LLM, tests, CI | `/version` endpoint + test | Config & secrets, why local LLMs, CI |
-| 2 | **Domain model & synthetic data** | Pydantic models (Incident, Ticket, LogLine, MetricPoint, Service, Deployment); generator for a fake company with ~15 services and **seeded incidents with known root causes** | One new incident scenario | "How do you evaluate with no real data?" |
+| 2 | **Domain model & synthetic data** ✅ | Pydantic models (Incident, Ticket, LogEvent, MetricPoint, Service, Deployment); generator for a fake company with ~15 services and **seeded incidents with known root causes** | One new incident scenario | "How do you evaluate with no real data?" |
 | 3 | **Storage & ingestion API** | SQLModel + SQLite, POST/GET endpoints, validation, pagination; first feature branch + pull request | Filters on `GET /incidents` | REST design, ORMs, idempotency |
 | 4 | **LLM layer** | Provider-agnostic client, structured outputs (Pydantic → JSON schema), retries/timeouts, prompt templates, token & latency logging, mock LLM for tests | Summarization prompt + schema | Structured output, prompt design, testing LLM code |
 | 5 | **Triage** | Classifier (TF-IDF baseline → embeddings → LLM, compared), dedup by embedding similarity + time window, ITIL impact × urgency priority | Cosine-similarity dedup | Baselines first, precision vs recall, when *not* to use an LLM |
