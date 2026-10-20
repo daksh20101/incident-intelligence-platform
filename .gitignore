@@ -1,0 +1,32 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# --- Virtual environments ---
+.venv/
+venv/
+
+# --- Tool caches ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- Secrets: NEVER commit these ---
+.env
+*.key
+
+# --- Local data & generated artifacts ---
+data/*
+!data/.gitkeep
+*.db
+*.sqlite
+
+# --- OS / editor clutter ---
+.DS_Store
+.idea/
+.vscode/

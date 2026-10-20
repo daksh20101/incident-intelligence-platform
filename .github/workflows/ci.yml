@@ -1,0 +1,32 @@
+# Continuous Integration: GitHub runs this on every push and pull request.
+# A green check on GitHub = lint passed + all tests passed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.0
+        with:
+          enable-cache: true
+
+      - name: Install Python and dependencies (exactly as locked)
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Run tests
+        run: uv run pytest
