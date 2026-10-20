@@ -434,10 +434,64 @@ class CacheMemoryPressure(Scenario):
         )
 
 
+class CertificateExpiry(Scenario):
+    """A TLS certificate expires: every call to the service fails at once."""
+
+    root_cause = RootCauseType.CERTIFICATE_EXPIRY
+    candidate_services = ("auth-service", "catalog-service", "payment-service")
+    duration_minutes = (15, 45)
+    expected_runbook = "tls-certificate-expiry"
+
+    def priority_for(self, service: str) -> Priority:
+        return Priority.P1 if service == "auth-service" else Priority.P2
+
+    def inject(self, ctx: ScenarioContext) -> None:
+        root = ctx.root_service
+        callers = ctx.direct_callers()
+
+        ctx.change_metric(root, ERROR_RATE, target=ctx.rng.uniform(0.5, 0.9))
+        ctx.spread_to_callers(error_rate=ctx.rng.uniform(0.5, 0.9), latency_factor=1.5)
+
+        for caller in callers:
+            ctx.log(
+                caller,
+                [
+                    f"SSL: CERTIFICATE_VERIFY_FAILED certificate has expired ({root}:443)",
+                    f"SSL: CERTIFICATE_VERIFY_FAILED certificate has expired ({root}:443)",
+                ],
+                every_minutes=1,
+            )
+
+        ctx.alert(
+            callers[0],
+            ERROR_RATE,
+            after_minutes=ctx.rng.randint(2, 5),
+            title=f"Certificate expired for {root}",
+        )
+
+        ctx.tickets(
+            [
+                ("Certificate expired", "The TLS certificate for the service has expired."),
+                ("SSL error", "SSL certificate verification failed due to expiration."),
+            ],
+            category=TicketCategory.AVAILABILITY,
+        )
+
+        ctx.summary = (
+            f"The TLS certificate for {root} expired, causing SSL verification failures "
+            f"and resulting in service unavailability until the certificate was renewed."
+        )
+        ctx.remediation = (
+            f"Renew the TLS certificate for {root}, deploy the updated certificate, and "
+            f"verify that SSL connections are successful."
+        )
+
+
 # Every scenario the generator can plant. Add new scenario classes here.
 SCENARIOS: list[type[Scenario]] = [
     BadDeployment,
     DbConnectionPoolExhaustion,
     ThirdPartyOutage,
     CacheMemoryPressure,
+    CertificateExpiry,
 ]

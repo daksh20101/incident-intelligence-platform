@@ -101,6 +101,7 @@ class RootCauseType(StrEnum):
     DB_CONNECTION_POOL_EXHAUSTION = "db_connection_pool_exhaustion"
     THIRD_PARTY_OUTAGE = "third_party_outage"
     CACHE_MEMORY_PRESSURE = "cache_memory_pressure"
+    CERTIFICATE_EXPIRY = "certificate_expiry"
 
 
 # -------------------------------------------------------------- operational data
