@@ -60,11 +60,13 @@ On the GitHub page, open the **Actions** tab. A green check ✅ means CI (lint +
 ## Part C — the everyday loop
 
 ```bash
-git status                       # what changed?
-git add -A                       # stage everything that changed
+git status
+git add -A
 git commit -m "feat: add /version endpoint"
-git push                         # send it to GitHub
+git push
 ```
+
+`git status` shows what changed, `git add -A` stages everything that changed, `git commit` saves the snapshot, `git push` sends it to GitHub.
 
 ### Commit message style (Conventional Commits)
 

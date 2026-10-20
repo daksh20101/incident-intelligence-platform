@@ -31,8 +31,8 @@
 **API and endpoint.** An API lets programs talk to your program over HTTP. An *endpoint* is one address + method, like `GET /health`. FastAPI turns a normal Python function into an endpoint with a *decorator*:
 
 ```python
-@app.get("/health", response_model=HealthResponse)   # decorator: "call this for GET /health"
-def health() -> HealthResponse:                      # "-> HealthResponse" is a type hint
+@app.get("/health", response_model=HealthResponse)  # decorator: "call this for GET /health"
+def health() -> HealthResponse:  # "-> HealthResponse" is a type hint
     return HealthResponse(status="ok", environment=settings.environment)
 ```
 
@@ -66,10 +66,12 @@ def health() -> HealthResponse:                      # "-> HealthResponse" is a 
 **Check your work**
 
 ```bash
-uv run ruff format .     # auto-format
-uv run ruff check .      # expect: All checks passed!
-uv run pytest            # expect: 5 passed
+uv run ruff format .
+uv run ruff check .
+uv run pytest
 ```
+
+The first command auto-formats your code. Expect **All checks passed!** from the second and **5 passed** from the third.
 
 Then commit and push (see `docs/GITHUB_GUIDE.md`, Part C), and paste your code to Claude for a review.
 

@@ -66,13 +66,14 @@ flowchart LR
 First-time Mac setup (Homebrew, uv, Ollama): see [docs/SETUP_MAC.md](docs/SETUP_MAC.md).
 
 ```bash
-cp .env.example .env                 # local settings (never committed)
-uv sync                              # install Python 3.12 + dependencies
-uv run pytest                        # run the tests
-uv run python scripts/check_llm.py   # confirm the LLM answers
+cp .env.example .env
+uv sync
+uv run pytest
+uv run python scripts/check_llm.py
 uv run uvicorn incident_intel.api.main:app --reload
-# open http://127.0.0.1:8000/docs
 ```
+
+In order: create your local settings file (never committed), install Python 3.12 and the dependencies, run the tests, confirm the LLM answers, then start the API and open <http://127.0.0.1:8000/docs>.
 
 ## Project structure
 

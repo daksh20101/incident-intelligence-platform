@@ -51,9 +51,11 @@ brew install --cask visual-studio-code
 2. Download the models (about 5.5 GB total):
 
 ```bash
-ollama pull qwen3:8b            # the chat / reasoning / tool-calling model
-ollama pull nomic-embed-text    # the embedding model (for search and dedup)
+ollama pull qwen3:8b
+ollama pull nomic-embed-text
 ```
+
+`qwen3:8b` is the chat / reasoning / tool-calling model; `nomic-embed-text` is the embedding model (for search and dedup).
 
 3. Say hello:
 
@@ -77,11 +79,13 @@ Paste the key into your `.env` and switch the `LLM_*` lines (examples are in `.e
 ```bash
 cd ~/Claude/incident-intelligence-platform
 cp .env.example .env
-uv sync                               # first run downloads Python 3.12 + packages
-uv run pytest                         # expect: 4 passed
-uv run python scripts/check_llm.py    # expect: [OK] Chat reply ... and an embedding vector
+uv sync
+uv run pytest
+uv run python scripts/check_llm.py
 uv run uvicorn incident_intel.api.main:app --reload
 ```
+
+What to expect: the first `uv sync` downloads Python 3.12 and the packages; `pytest` prints **4 passed**; `check_llm.py` prints **[OK] Chat reply** and an embedding vector.
 
 Open <http://127.0.0.1:8000/docs>, click **GET /health → Try it out → Execute**. You should see `{"status": "ok", ...}`.
 Stop the server with `Ctrl + C`.
