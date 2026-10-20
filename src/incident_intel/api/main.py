@@ -38,3 +38,16 @@ def health() -> HealthResponse:
     whether to send traffic to (or restart) a service.
     """
     return HealthResponse(status="ok", environment=settings.environment)
+
+
+class VersionResponse(BaseModel):
+    """Shape of the /version reply."""
+
+    name: str
+    version: str
+
+
+@app.get("/version", response_model=VersionResponse, tags=["system"])
+def version() -> VersionResponse:
+    """Return the app name and version."""
+    return VersionResponse(name=settings.app_name, version=__version__)

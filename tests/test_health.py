@@ -5,6 +5,7 @@ TestClient calls the app in-process, so no server needs to be running.
 
 from fastapi.testclient import TestClient
 
+from incident_intel import __version__
 from incident_intel.api.main import app
 
 client = TestClient(app)
@@ -25,3 +26,10 @@ def test_openapi_docs_are_published() -> None:
 
     assert response.status_code == 200
     assert "/health" in response.json()["paths"]
+
+
+def test_version_returns_package_version() -> None:
+    response = client.get("/version")
+
+    assert response.status_code == 200
+    assert response.json()["version"] == __version__
