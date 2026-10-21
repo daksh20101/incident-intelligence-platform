@@ -2,7 +2,7 @@
 
 **An AI copilot for IT operations.** It ingests incidents, user tickets, application logs and metrics, then triages them, predicts SLA breaches, detects anomalies, retrieves the right runbooks and proposes **evidence-linked root-cause hypotheses** — with a human approving every remediation.
 
-> Status: **Step 2 of 15 complete** (foundations, domain model & synthetic data). Built step by step in public; see the [roadmap](docs/ROADMAP.md) and the [learning journal](docs/learning/).
+> Status: **Step 3 of 15 complete** (foundations, synthetic data, storage & ingestion API). Built step by step in public; see the [roadmap](docs/ROADMAP.md) and the [learning journal](docs/learning/).
 
 ---
 
@@ -24,6 +24,7 @@ On-call engineers lose the first 30+ minutes of an outage to the same chores: fi
 | Incident timelines and postmortems | Grounded LLM generation with citations | Planned (Step 12) |
 | Incident, SLA and service-health dashboards | Streamlit | Planned (Step 13) |
 | Realistic test data with known answers | Synthetic company, seeded incidents, decoys, false alarms | ✅ Done (Step 2) |
+| Receive and store incidents and tickets | REST API with idempotent ingestion, pagination, SQL storage | ✅ Done (Step 3) |
 | Measured quality | Evaluation harness on seeded incidents | Planned (Step 14) |
 
 ## Architecture
@@ -55,12 +56,13 @@ flowchart LR
 |---|---|---|
 | Language & tooling | Python 3.12, [uv](https://docs.astral.sh/uv/), Ruff, pytest | Fast, reproducible installs; one tool for Python, venvs and dependencies |
 | API | FastAPI + Pydantic | Type-checked requests/responses, automatic OpenAPI docs |
+| Storage | SQLAlchemy 2.0 + SQLite | Standard ORM; SQLite for development, swap the URL for Postgres in production |
 | LLM | Any OpenAI-compatible endpoint; default **Ollama + Qwen3 8B** running locally | Free, private (incident data stays on the machine), swappable to Groq/Gemini |
 | Embeddings | `nomic-embed-text` via Ollama | Free local embeddings for dedup and RAG |
 | ML / time series | scikit-learn, pandas, statsmodels | Strong, explainable baselines before reaching for an LLM |
 | Graph | NetworkX | Service dependencies, blast radius, upstream-cause search |
 | UI | Streamlit | Dashboards in pure Python |
-| CI | GitHub Actions | Lint + tests on every push |
+| CI & code quality | GitHub Actions, pre-commit | Lint + tests on every push and pull request; auto-format on every commit |
 
 ## Quickstart
 
@@ -69,29 +71,46 @@ First-time Mac setup (Homebrew, uv, Ollama): see [docs/SETUP_MAC.md](docs/SETUP_
 ```bash
 cp .env.example .env
 uv sync
+uv run pre-commit install
 uv run pytest
 uv run python scripts/check_llm.py
 uv run python scripts/generate_data.py
+uv run python scripts/load_data.py
 uv run uvicorn incident_intel.api.main:app --reload
 ```
 
-In order: create your local settings file (never committed), install Python 3.12 and the dependencies, run the tests, confirm the LLM answers, generate the synthetic dataset into `data/synthetic/`, then start the API and open <http://127.0.0.1:8000/docs>.
+In order: create your local settings file (never committed), install Python 3.12 and the dependencies, turn on the auto-format check for commits, run the tests, confirm the LLM answers, generate the synthetic dataset into `data/synthetic/`, load it into the database, then start the API and open <http://127.0.0.1:8000/docs>.
 
 ## Project structure
 
 ```
 ├── src/incident_intel/      # the application package
-│   ├── api/main.py          # FastAPI app and endpoints
+│   ├── api/                 # FastAPI app: incidents, tickets, topology, health routes
 │   ├── config.py            # typed settings from env vars / .env
 │   ├── domain/models.py     # shared data types: Incident, Ticket, LogEvent, ...
+│   ├── storage/             # database tables, repository functions, data loader
 │   └── synthetic/           # ShopFast generator: topology, signals, seeded scenarios
 ├── scripts/
 │   ├── check_llm.py         # smoke test for the LLM connection
-│   └── generate_data.py     # build the synthetic dataset
+│   ├── generate_data.py     # build the synthetic dataset
+│   └── load_data.py         # load it into the database
 ├── tests/                   # pytest test suite
 ├── docs/                    # roadmap, setup guides, learning journal
 └── .github/workflows/ci.yml # CI: lint + tests on every push
 ```
+
+## API
+
+| Method & path | What it does |
+|---|---|
+| `POST /incidents`, `POST /tickets` | Ingest an alert or a ticket. Idempotent: a retry returns `200`, a conflicting duplicate `409` |
+| `GET /incidents`, `GET /tickets` | Newest first, paginated with `limit` and `offset` |
+| `GET /incidents/{id}`, `GET /tickets/{id}` | One record, or `404` |
+| `GET /services` | The services and their dependencies |
+| `GET /deployments?service=&since=&until=` | What changed, and when |
+| `GET /health`, `GET /ready`, `GET /version` | Liveness, readiness (checks the database) and version |
+
+Interactive docs with "Try it out" buttons: <http://127.0.0.1:8000/docs> while the server runs.
 
 ## Data
 

@@ -87,6 +87,54 @@ Add this as the second line of `README.md`, replacing `YOUR-USERNAME`:
 ![CI](https://github.com/YOUR-USERNAME/incident-intelligence-platform/actions/workflows/ci.yml/badge.svg)
 ```
 
-## Coming in Step 3
+## Part E — feature branches and pull requests
 
-Feature branches and pull requests (`git switch -c feature/...`, `gh pr create`) — the way real teams work, and a common interview topic.
+Until now every commit went straight to `main`. Real teams never do that: each change lives on its own **branch**, is proposed as a **pull request (PR)**, gets checked by CI and reviewed, and only then is **merged** into `main`. `main` always stays working.
+
+```
+main      ●────────────────────────●  (merge)
+           \                      /
+feature/x   ●───●───●  (your commits, CI runs on the PR)
+```
+
+The loop, from your project folder:
+
+```bash
+git switch -c feature/storage-api
+git add -A
+git commit -m "feat: SQLite storage and ingestion API"
+git push -u origin feature/storage-api
+gh pr create --fill
+gh pr checks --watch
+gh pr merge --squash --delete-branch
+git switch main
+git pull
+```
+
+What each line does:
+
+| Command | Meaning |
+|---|---|
+| `git switch -c feature/storage-api` | Create a new branch and move onto it. Uncommitted changes come with you |
+| `git push -u origin feature/storage-api` | Upload the branch. `-u` remembers where it goes, so later a plain `git push` works |
+| `gh pr create --fill` | Open a pull request, using your commit message as its title |
+| `gh pr checks --watch` | Wait for CI on the PR. Green means safe to merge |
+| `gh pr merge --squash --delete-branch` | Merge into `main` as one tidy commit, then delete the branch |
+| `git switch main` then `git pull` | Go back to `main` and download the merged result |
+
+Want to see the PR in the browser (where reviewers comment line by line)? Run `gh pr view --web` before merging.
+
+## Part F — automatic checks on every commit (pre-commit)
+
+Once per project folder:
+
+```bash
+uv run pre-commit install
+```
+
+From then on, every `git commit` first runs Ruff on the files you're committing. If Ruff had to fix something, the commit **stops** and says `files were modified by this hook`. That's not an error: the files are fixed now. Stage the fixes and commit again:
+
+```bash
+git add -A
+git commit -m "your same message"
+```

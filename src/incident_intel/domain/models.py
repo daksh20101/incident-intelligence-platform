@@ -158,7 +158,7 @@ class Incident(StrictModel):
     title: str
     description: str
     priority: Priority
-    status: IncidentStatus = IncidentStatus.RESOLVED
+    status: IncidentStatus = IncidentStatus.OPEN
     resolved_at: AwareDatetime | None = None
     alert_metric: MetricName | None = None
     observed_value: float | None = None
