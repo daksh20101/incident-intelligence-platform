@@ -17,8 +17,10 @@ from sqlalchemy.orm import Session
 from incident_intel.domain import (
     Deployment,
     Incident,
+    IncidentStatus,
     LogEvent,
     MetricPoint,
+    Priority,
     Service,
     Ticket,
 )
@@ -55,10 +57,22 @@ def add_incident(session: Session, incident: Incident) -> None:
 
 
 def list_incidents(
-    session: Session, *, limit: int = 50, offset: int = 0
+    session: Session,
+    *,
+    service: str | None = None,
+    priority: Priority | None = None,
+    status: IncidentStatus | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> tuple[list[Incident], int]:
     """A page of incidents, newest first, plus how many there are in total."""
     query = select(IncidentRow)
+    if service is not None:
+        query = query.where(IncidentRow.service == service)
+    if priority is not None:
+        query = query.where(IncidentRow.priority == priority)
+    if status is not None:
+        query = query.where(IncidentRow.status == status)
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     rows = session.scalars(
         query.order_by(IncidentRow.opened_at.desc(), IncidentRow.id.desc())

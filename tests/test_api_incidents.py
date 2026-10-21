@@ -84,3 +84,31 @@ def test_list_is_newest_first_and_paginated(client: TestClient) -> None:
 
 def test_page_size_is_limited(client: TestClient) -> None:
     assert client.get("/incidents", params={"limit": 501}).status_code == 422
+
+
+def test_incidents_can_be_filtered_by_service_and_priority(client: TestClient) -> None:
+    client.post("/incidents", json=make_incident(id="INC-1", priority="P1"))
+    client.post("/incidents", json=make_incident(id="INC-2", priority="P3"))
+    client.post("/incidents", json=make_incident(id="INC-3", service="api-gateway"))
+
+    by_service = client.get("/incidents", params={"service": "order-service"}).json()
+    by_both = client.get("/incidents", params={"service": "order-service", "priority": "P1"})
+
+    assert {i["id"] for i in by_service["items"]} == {"INC-1", "INC-2"}
+    assert by_service["total"] == 2
+    assert [i["id"] for i in by_both.json()["items"]] == ["INC-1"]
+
+
+def test_incidents_can_be_filtered_by_status(client: TestClient) -> None:
+    client.post("/incidents", json=make_incident(id="INC-1"))
+    client.post("/incidents", json=make_incident(id="INC-2", status="resolved"))
+
+    page = client.get("/incidents", params={"status": "open"}).json()
+
+    assert [i["id"] for i in page["items"]] == ["INC-1"]
+
+
+def test_unknown_priority_filter_is_rejected(client: TestClient) -> None:
+    response = client.get("/incidents", params={"priority": "P9"})
+
+    assert response.status_code == 422
