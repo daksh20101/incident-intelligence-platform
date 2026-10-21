@@ -11,6 +11,7 @@ from datetime import timedelta
 from incident_intel.domain import (
     Deployment,
     Incident,
+    IncidentStatus,
     MetricName,
     Priority,
     ServiceTier,
@@ -141,6 +142,7 @@ def add_false_alarms(world: World, rng: random.Random) -> None:
             title=f"CPU above 85% on {service}",
             description=f"Alert: cpu_pct on {service} crossed its threshold of 85.0.",
             priority=Priority.P4,
+            status=IncidentStatus.RESOLVED,
             resolved_at=end + timedelta(minutes=rng.randint(1, 3)),
             alert_metric=MetricName.CPU_PCT,
             threshold=alert_threshold(service, MetricName.CPU_PCT),

@@ -10,6 +10,14 @@ uv run python scripts/generate_data.py
 
 Options: `--days 14 --incidents 12 --seed 42 --out data/synthetic`. The same seed always produces byte-identical files, so the data is not committed to git; anyone can regenerate it.
 
+Then load it into the database (`data/incident_intel.db`, replaced on every run) so the API can serve it:
+
+```bash
+uv run python scripts/load_data.py
+```
+
+Every file is loaded except `ground_truth.json`: the platform must never see the answers it is evaluated on.
+
 ## The company
 
 ```mermaid

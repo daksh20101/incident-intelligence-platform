@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     environment: str = "local"
     log_level: str = "INFO"
 
+    # --- Database (any SQLAlchemy URL; SQLite file for local development) ---
+    database_url: str = "sqlite:///data/incident_intel.db"
+
     # --- LLM (any OpenAI-compatible endpoint: Ollama, Groq, Gemini, ...) ---
     llm_provider: str = "ollama"
     llm_base_url: str = "http://localhost:11434/v1"
