@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException, Response, status
 
 from incident_intel.api.deps import Limit, Offset, Page, SessionDep
-from incident_intel.domain import Incident
+from incident_intel.domain import Incident, IncidentStatus, Priority
 from incident_intel.storage import repository
 
 router = APIRouter(prefix="/incidents", tags=["incidents"])
@@ -38,9 +38,18 @@ def create_incident(incident: Incident, response: Response, session: SessionDep)
 
 
 @router.get("", response_model=Page[Incident])
-def list_incidents(session: SessionDep, limit: Limit = 50, offset: Offset = 0) -> Page[Incident]:
+def list_incidents(
+    session: SessionDep,
+    service: str | None = None,
+    priority: Priority | None = None,
+    status: IncidentStatus | None = None,
+    limit: Limit = 50,
+    offset: Offset = 0,
+) -> Page[Incident]:
     """Incidents, newest first, one page at a time."""
-    items, total = repository.list_incidents(session, limit=limit, offset=offset)
+    items, total = repository.list_incidents(
+        session, service=service, priority=priority, status=status, limit=limit, offset=offset
+    )
     return Page(items=items, total=total, limit=limit, offset=offset)
 
 
