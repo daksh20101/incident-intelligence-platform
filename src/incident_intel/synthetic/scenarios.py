@@ -457,7 +457,7 @@ class CertificateExpiry(Scenario):
                 caller,
                 [
                     f"SSL: CERTIFICATE_VERIFY_FAILED certificate has expired ({root}:443)",
-                    f"SSL: CERTIFICATE_VERIFY_FAILED certificate has expired ({root}:443)",
+                    f"TLS handshake with {root} failed: certificate expired",
                 ],
                 every_minutes=1,
             )
@@ -466,16 +466,34 @@ class CertificateExpiry(Scenario):
             callers[0],
             ERROR_RATE,
             after_minutes=ctx.rng.randint(2, 5),
-            title=f"Certificate expired for {root}",
+            title=f"Error rate above 5% on {callers[0]}",
         )
 
-        ctx.tickets(
-            [
-                ("Certificate expired", "The TLS certificate for the service has expired."),
-                ("SSL error", "SSL certificate verification failed due to expiration."),
-            ],
-            category=TicketCategory.AVAILABILITY,
-        )
+        user_complaints = {
+            "auth-service": (
+                TicketCategory.ACCESS,
+                [
+                    ("Can't log in", "Login fails with an error every time since this morning."),
+                    ("Login broken", "I enter my password and get 'something went wrong'."),
+                ],
+            ),
+            "catalog-service": (
+                TicketCategory.AVAILABILITY,
+                [
+                    ("Product pages not loading", "Every product page shows an error."),
+                    ("Shop not working", "I can't open any products on the website."),
+                ],
+            ),
+            "payment-service": (
+                TicketCategory.PAYMENTS,
+                [
+                    ("Payment failed", "My card payment fails at checkout every time."),
+                    ("Can't pay for order", "Checkout says 'payment could not be processed'."),
+                ],
+            ),
+        }
+        category, templates = user_complaints[root]
+        ctx.tickets(templates, category=category)
 
         ctx.summary = (
             f"The TLS certificate for {root} expired, causing SSL verification failures "
